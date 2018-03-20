@@ -1,0 +1,440 @@
+<!doctype html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>FSharp presentation</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/night.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+    <style type="text/css">
+    p { text-align: left; }
+    </style>
+    
+	</head>
+  
+  	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+          <h2>From "F-What ?" to F#</h2>
+          <br/>
+          <h3>Language intro + discovering powerful yet accessible features</h3>
+          <br/>
+          <h4>birdmod (GitHub)</h4>
+        </section>
+				<section>
+          <h3>Presentation</h3>
+          <section>
+            <p>CLI language of created by Microsoft Research</p>
+            <p>Maintained and improved by the F# Software Foundation</p>
+          </section>
+          <section>
+            <blockquote cite="http://fsharp.org/">"F# is a <span style="color:#e7ad52">mature</span>, open source, cross-platform, <span style="color:#e7ad52">functional-first</span> programming language.<br/> 
+            It empowers users and organizations to tackle complex computing problems with simple, 
+            maintainable and robust code"</blockquote>
+          </section>
+          <section>
+            <p>mature : released in 2005, latest version is F# 4.1. MSDN docs available F#. Microsoft supports it as C#. Available since VS 2012 (at least)</p>
+            <p>
+            functional-first : not limited to functional paradigm. Possible to mix to object oriented or procedural code
+            </p>
+          </section>
+        </section>
+
+        <section>
+          <h3>Syntax Basics</h3>
+          <section>
+            <pre>
+              <code class="fsharp">
+          (* binding *)
+          let amount = 10
+          
+          (* declare function and conditional *)
+          let incrementWithLimit number limit = 
+            if number < limit then
+              number + 1
+            else
+              limit
+              </code>
+            </pre>
+          </section>
+          
+          <section>
+            <pre>
+              <code class="fsharp">
+          (* reference & array & loop *)
+          open System.IO
+          
+          let folders = Directory.GetDirectories @"C:\"
+          for folder in folders do
+            printfn "Folder found in C:\\ : %s" folder
+            
+          (* n-tuples *)
+          let filmAndScore = ("inception", 8.8)
+          let filmScoreYear = ("interstellar", 8.6, 2014)
+              </code>
+            </pre>
+          </section>
+        </section>
+        
+        <section>
+          <h3>Type inference</h3>
+          <section>
+            <p>
+            Compiler deduces types.<br/>
+            This information is not hidden. IDEs integrating F# provide it<br/>
+            </p>
+          
+            <pre>
+              <code class="fsharp">
+          let isAwesome = true (* bool *)
+          let increment n = n + 1 (* (int -> int) *)
+          let increment n = n + 1. (* (float -> float) *)
+              </code>
+            </pre>
+          </section>
+          
+          <section>
+            <p>Compiler notifies of ambiguous cases. We fix this by clarifying the expected type : <span style="color:#e7ad52">type annotations</span></p>
+            
+            <pre>
+              <code class="fsharp">
+          (* ('a -> 'b) *)
+          let getLength x = x.Length 
+          
+          (* (string -> int) *)
+          let getLength (x:string) = x.Length 
+          
+          (* (float[] -> int) *)
+          let getLength (x:float []) = x.Length 
+              </code>
+            </pre>
+          </section>
+          
+        </section>
+        
+        <section>
+          <h3>FP: Immutability</h3>
+          <p>Value is bound to the label, <span class="fragment">forever</span></p>
+          <p class="fragment">Limits surprise effects by working with copies, thread safety</p>
+          <p class="fragment">BTW System.String is immutable... and you're still alive</p>
+          <p class="fragment">Do not see it as a negative point</p>
+        </section>
+        
+        <section>
+          <h3>FP : higher order</h3>
+          <p>functions accepts or return other functions as parameters<p>
+            <pre>
+              <code class="fsharp">
+          let sendEmail recipient recipientCheck = 
+              recipientCheck recipient
+              </code>
+            </pre>
+        </section>
+        
+       <section>
+          <h3>FP : partial application</h3>
+          <p>The power to build "pre configured" functions<p>
+            <pre>
+              <code class="fsharp">
+          (* t_credentials -> t_query -> t_result *)
+          let connectToDbThenExecute credentials query = 
+            DB.connect credentials
+            DB.exec query
+          
+          connectToDbThenExecute creds query1
+          connectToDbThenExecute creds query2
+          
+          let executeQuery = connectToDbThenExecute creds 
+          executeQuery query1
+          executeQuery query2
+              </code>
+            </pre>
+        </section>
+        
+        <section>
+            <section>
+            <h3>Designing powerful types to model your domain </h3>
+            <p>How do you represent a set of exclusive cases ?</p>
+            </section>
+            <section>
+              <pre>
+                <code class="csharp">
+            /// booleans
+            var isUserAvailable = true
+
+            /// 0 stands for rock, 1 for paper, 
+            /// 2 for scissors.
+            var player1Choice = 1 
+            ///... until the days someone adds a dynamite case 
+            /// and "explodes" in your code 
+            /// Dynamite case introduced. 
+            /// Effective against scissors and paper
+            var player2Choice = 4 
+                </code>
+              </pre>
+            </section>
+            
+            <section>
+              <pre>
+                <code class="csharp">
+            var isScissors = true;
+            var isRock = false;
+            var isPaper = false;
+            var isDynamite = true;
+                </code>
+              </pre>
+            </section>
+            
+            <section>
+              <pre>
+                <code class="csharp">
+            public enum TurnChoice 
+            {
+              Player1,
+              Player2
+            }
+            /// ... has to evolve into ...
+            public enum AdvancedTurnChoice
+            {
+              Player1Day,
+              Player1Night,
+              Player2Day,
+              Player2Night,
+            }
+                </code>
+              </pre>
+            </section>
+            
+            <section>
+              <p>Sometimes, we have constraints or we change 
+the design as if nothing happened and we hold limited data</p>
+            </section>
+        </section>
+        
+        
+        <section>
+          <section>
+            <h3>Discriminated unions</h3>
+            <p>~ Union in C</p>
+            <ul>
+              <li>Exclusive set of cases</li>
+              <li>Holds data</li>
+              <li>Meaningful, understandable, IEasilyDebuggable</li>
+            </ul>
+          </section>
+                    
+          <section>
+              <pre>
+                <code class="fsharp">
+            type UserChoice = 
+              | Paper
+              | Scissors
+              | Rock
+            let user1Choice = Paper 
+
+            (* so enums ? no because I did not write: *)
+            type UserChoice = 
+              | Paper = 0
+              | Scissors = 1
+              | Rock = 2
+                </code>
+              </pre>
+          </section>
+          
+          <section>
+              <pre>
+                <code class="fsharp">
+            type FamousCaseOfShapeModelization = 
+              | Circle of uint32 (* ( ͡° ͜ʖ ͡°) *)
+              | Square of Edge : uint32
+              | Rectangle of uint32 * uint32
+            let TimesSquare = Square(12)
+                </code>
+              </pre>
+          </section>
+          
+          <section>
+              <p>Multiple DU usage</p>
+              <pre>
+                <code class="fsharp">
+            type PlayingCardKind = 
+              | Clubs | Spades | Diamonds | Hearts
+            type PlayingCardNum = 
+              | Ace | King | Queen | Jack | Two | Three | Four 
+              | Five | Six | Seven | Eight | Nine | Ten
+            type PlayingCard = 
+              | PlayingCardNum * PlayingCardKind
+            type Deck = PlayingCard []
+                </code>
+              </pre>
+          </section>
+          
+          <section>
+            <p>We could use enums ... Now imagine card values as floats... </p>
+            
+            <strong>wrong/illegal states are not possible by design</strong>
+          </section>
+          
+          <section>
+              <h3>Recursive DUs</h3>
+              <pre>
+                <code class="fsharp">
+            type BinaryTree = 
+              | Node of 'NodeType * Tree * Tree
+              | Leaf of 'NodeType
+                </code>
+              </pre>
+          </section>
+        </section>
+        
+        
+        <section>
+          <h3>Pattern matching</h3>
+          <section>
+            <p>if then else : conditional<br/> This construct lets you branch between multiple expressions to execute with the ability to decompose or match input data <p>
+                <pre>
+                  <code class="fsharp">
+              match data with
+              | case 1 -> expression 1
+              | ...
+              | case N -> expression N
+                  </code>
+                </pre>
+          </section>
+              
+          <section>
+          <p>One benefit is that missing cases are detected by the compiler.<br/> DUs are supported
+so you will know at compile time that your design is broken</p>
+            <pre>
+              <code class="fsharp">
+          match cardKind with
+            | Clubs -> "♣"
+            | Spades  -> "♠"
+            | Diamonds -> "♦" (* no hearts, won't compile  *)
+              </code>
+            </pre>
+          </section>
+          
+          
+          <section>
+          <p>Data extraction is possible by creating a "pattern"</p>
+              <pre>
+                <code class="fsharp">
+      let todayActivities = ["curling"; "swimming"; "rock climbing"]
+      match todayActivities with
+        | "curling"::remainingElements ->  "Excellent activity !"
+        | ...
+        
+      type Meal = Breakfast | Lunch | Dinner
+      let lunchAndPriceTuple = (Breakfast, 15) (* Meal*int *)
+
+      let mealGossip tpl = 
+      match mealTuple with
+        | (Breakfast, price) when price > 8 -> "omg so pricey!" 
+        | (Breakfast, price) -> "where did you buy it ?"
+        | (Lunch, price) ... 
+                </code>
+              </pre>
+          </section>
+          
+          <section>
+            <p>Another level than if/then/else (we could even replace them)</p>
+            <p>Improved readability</p>
+          </section>
+        </section>
+        
+        
+
+        
+        <section>
+          <h3>Type providers</h3>
+          <section>
+            <p>What is the workflow when working with data of an external source ?</p>
+            <p class="fragment ">=>Read the doc, analyse response, create types, play with properties</p>
+            <p class="fragment">How to work with data from external source in short cycles (schema changes ?) and with a need to be operational quickly ?</p>
+            <p class="fragment ">=>By using the same workflow ?</p>
+          </section>
+          <section>
+          <ul>
+            <li>Read the doc</li>
+            <li>analyse response : documentation defines it</li>
+            <li>create type : if we know the structure, we know how to navigate inside</li>
+          </ul>
+          <p>The concept is to generate on the fly the structures and properties to explore and use them.<br/>
+We may miss information in the doc. Which tool could let us discover it ? </p>
+          </section>
+          
+          <section>
+              <h3>If the demo fails...</h3>
+              <pre>
+                <code class="fsharp">
+        [&lt;LiteralAttribute&gt;] (* compile time assignment *)
+        let url = "https://jsonplaceholder.typicode.com/users"
+        type LectureDataProvider = JsonProvider&lt;url&gt;
+        let allUsers = LectureDataProvider.Load(url)
+                </code>
+              </pre>
+        
+          </section>
+        </section>
+        
+        <section>
+          <h3>Conclusion</h3>
+          <section>
+            <p>Wrap up</p>
+            <p>The difficulty is to set the cursor between FP and F# 
+so some stuff is left</p>
+          </section>
+          <section>
+          <p>Not covered in this presentation because of time:</p>
+          <ul>
+          <li>options</li>
+          <li>Measures</li>
+          <li>RECORDS</li>
+          <li>list comprehensions</li>
+          <li>composition & pipe operator</li>
+          <li>communication with C#</li>
+          <li>...</li>
+          </ul>
+          </section>
+        </section>
+        
+        <section>
+          <h2>Questions ?</h2>
+        </section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+  
+</html>
